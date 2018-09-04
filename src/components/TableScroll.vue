@@ -59,18 +59,23 @@ export default {
       scrollbars: true,
     })
     this.iscrollTable.on('scroll',this.scrollTable)
-    this.iscrollTable.on('beforeScrollStart', function () {
-      this.refresh();
-    });
+    this.iscrollTable.on('beforeScrollStart', this.scrollStart);
     this.iscrollTable.on('scrollEnd', this.scrollEnd);
     document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
   },
   methods: {
     scrollTable () {
       let iscrollTable = this.iscrollTable
-      if (iscrollTable.y > 0 || iscrollTable.x >0) {
-        iscrollTable.scrollTo(0, 0);
+      if (iscrollTable.x > 0) {
+        iscrollTable.scrollTo(0, iscrollTable.y);
         return;
+      }
+      if (iscrollTable.y > 0) {
+        iscrollTable.scrollTo(iscrollTable.x, 0);
+        return;
+      }
+      if (iscrollTable.y === iscrollTable.maxScrollY) {
+        iscrollTable.scrollTo(iscrollTable.x, iscrollTable.maxScrollY);
       }
       const _this = this
 			let timer = null
@@ -79,6 +84,11 @@ export default {
 				_this.$refs.tFixedLeft.style.transform = 'translateY(' + iscrollTable.y + 'px)'			
 				_this.$refs.tFixedHead.style.transform = 'translate(' + iscrollTable.x + 'px, 0px)'			
       }, 10)
+    },
+    scrollStart() {
+      this.startx = this.iscrollTable.x;
+      this.starty = this.iscrollTable.y;
+      this.iscrollTable.refresh();
     },
     scrollEnd() {
       let iscrollTable = this.iscrollTable
