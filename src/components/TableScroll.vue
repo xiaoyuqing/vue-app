@@ -12,7 +12,7 @@
 			</table>
 		</div>
 		<div class="scroll-table" ref="cScroll" :style="{height: scrollHeight + 'px'}">			
-			<div class="table-body" style="margin: 43px 0 0 63px;">
+			<div class="table-body" style="margin: 43px 0 0 63px;" :style="{height: scrollHeight -43 + 'px'}">
 				<table id="roll-table" ref="scrollBody">
 					<tr v-for="(tr, index) in files" :key="index">
 						<td v-for="(item,index) in tr" :key="index">{{item.name}}</td>
@@ -23,7 +23,8 @@
 	</div>
 </template>
 <script>
-const iScoll = require('iscroll/build/iscroll-probe')
+const iScoll = require('iscroll/build/iscroll-probe');
+const infinite = require('iscroll/build/iscroll-infinite');
 export default {
 	props: {
 		tableData: Object,
@@ -39,7 +40,8 @@ export default {
       showLeft: false,
 			showTop: false,
 			scrollHeight: window.innerHeight,
-			pageNum: 1,
+      pageNum: 1,
+      isUpload: true,
     }
   },
   mounted() {
@@ -66,18 +68,25 @@ export default {
   methods: {
     scrollTable () {
       let iscrollTable = this.iscrollTable
-			const _this = this
+      if (iscrollTable.y > 0 || iscrollTable.x >0) {
+        iscrollTable.scrollTo(0, 0);
+        return;
+      }
+      const _this = this
 			let timer = null
 			clearInterval(timer)
 			timer = setTimeout(() => {
 				_this.$refs.tFixedLeft.style.transform = 'translateY(' + iscrollTable.y + 'px)'			
 				_this.$refs.tFixedHead.style.transform = 'translate(' + iscrollTable.x + 'px, 0px)'			
-			}, 10)
+      }, 10)
     },
     scrollEnd() {
-      this.pageNum++;
-      if (this.pageNum < this.totalPage || this.pageNum === this.totalPage) {
-        this.files = this.tableData.files.slice(0, this.pageSize*this.pageNum);
+      let iscrollTable = this.iscrollTable
+      if(Math.abs(iscrollTable.maxScrollY) - Math.abs(iscrollTable.y) < 20){
+        this.pageNum++;
+        if (this.pageNum < this.totalPage || this.pageNum === this.totalPage) {
+          this.files = this.tableData.files.slice(0, this.pageSize*this.pageNum);
+        }
       }
     }
   }
@@ -87,7 +96,7 @@ export default {
 .document {
   width: 100%;
   position: relative;
-	overflow: hidden;
+  overflow: hidden;
 	.table-head{
 		position: absolute;
 		overflow: hidden;
@@ -97,8 +106,8 @@ export default {
 		overflow: auto;
     -webkit-overflow-scrolling: touch;
     .table-body{
-      height: 100%;
       overflow: hidden;
+      position: relative;
     }
 	}
   .top-left {

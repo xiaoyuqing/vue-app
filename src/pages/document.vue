@@ -1,5 +1,5 @@
 <template>
-  <TableScroll :tableData="mockData" :pageSize="15"></TableScroll>
+  <TableScroll :tableData="mockData" :pageSize="30"></TableScroll>
 </template>
 <script>
 import TableScroll from '@/components/TableScroll'
