@@ -85,6 +85,7 @@ export default {
         if (this.pageNum < this.totalPage || this.pageNum === this.totalPage) {
           this.files = this.tableData.files.slice(0, this.pageSize * this.pageNum);
           setTimeout(() => iscrollTable.refresh(), 0);
+          iscrollTable.trigger('scroll');
         }
       }
       const _this = this;
@@ -107,7 +108,8 @@ export default {
             0,
             this.pageSize * this.pageNum
           );
-          iscrollTable.maxScrollY = iscrollTable.maxScrollY - 667;
+          // setTimeout(() => iscrollTable.refresh(), 0);
+          iscrollTable.trigger('scroll');
         }
       }
     },

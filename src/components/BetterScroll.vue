@@ -54,15 +54,16 @@ export default {
       mouseWheel: false, //是否监听鼠标滚轮事件。
       scrollX: true, // 启动x轴滑动
       scrollY: true, // 启动y轴滑动
-      scrollbar: true
+      scrollbar: true,
+      momentum: true,
     });
     this.iscrollTable.on("scroll", this.scrollTable);
     this.iscrollTable.on("beforeScrollStart", this.scrollStart);
-    // this.iscrollTable.on('scrollEnd', this.scrollEnd);
   },
   methods: {
-    scrollTable() {
+    scrollTable() {  
       let iscrollTable = this.iscrollTable;
+      console.log(iscrollTable.y)
       if (iscrollTable.x > 0) {
         iscrollTable.scrollTo(0, iscrollTable.y);
         return;
@@ -79,10 +80,10 @@ export default {
         }
       }
       const _this = this;
-      _this.$refs.tFixedLeft.style.transform =
-        "translateY(" + iscrollTable.y + "px)";
-      _this.$refs.tFixedHead.style.transform =
-        "translate(" + iscrollTable.x + "px, 0px)";
+      _this.$refs.tFixedLeft.style.transform = "translateY(" + iscrollTable.y + "px)";
+      // _this.$refs.tFixedLeft.style.transition = "300ms cubic-bezier(0.23, 1, 0.32, 1)";
+      _this.$refs.tFixedHead.style.transform = "translate(" + iscrollTable.x + "px, 0px)";
+      // _this.$refs.tFixedHead.style.transition = "300ms cubic-bezier(0.23, 1, 0.32, 1)";
     },
     scrollStart() {
       this.startx = this.iscrollTable.x;
