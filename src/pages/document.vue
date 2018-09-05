@@ -1,8 +1,8 @@
 <template>
-  <TableScroll :tableData="mockData" :pageSize="100"></TableScroll>
+  <BetterScroll :tableData="mockData" :pageSize="100"></BetterScroll>
 </template>
 <script>
-import TableScroll from '@/components/TableScroll'
+import BetterScroll from '@/components/BetterScroll'
 import mockData from '@/mock/mock.js'
 export default {
   data() {
@@ -11,7 +11,7 @@ export default {
     }
   },
   components:{
-    TableScroll
+    BetterScroll
   }
 }
 </script>
