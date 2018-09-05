@@ -23,49 +23,55 @@
 	</div>
 </template>
 <script>
-const iScoll = require('iscroll/build/iscroll-probe');
-const infinite = require('iscroll/build/iscroll-infinite');
+const iScoll = require("iscroll/build/iscroll-probe");
+const infinite = require("iscroll/build/iscroll-infinite");
 export default {
-	props: {
-		tableData: Object,
-		pageSize: {
-			type: Number,
-			default: 11,
-		}
-	},
-  data () {
-    return {
-			headers: [],
-      files: [],
-      showLeft: false,
-			showTop: false,
-			scrollHeight: window.innerHeight,
-      pageNum: 1,
-      isUpload: true,
+  props: {
+    tableData: Object,
+    pageSize: {
+      type: Number,
+      default: 11
     }
   },
+  data() {
+    return {
+      headers: [],
+      files: [],
+      showLeft: false,
+      showTop: false,
+      scrollHeight: window.innerHeight,
+      pageNum: 1,
+      isUpload: true
+    };
+  },
   mounted() {
-		this.headers = this.tableData.headers
-		let total = this.tableData.files.length
-		this.totalPage = Math.ceil(total / this.pageSize)
-    this.files = this.tableData.files.slice(0, this.pageSize)
-    this.iscrollTable = new iScoll('.table-body',{
-      preventDefault: true,  // 阻止浏览器滑动默认行为
+    this.headers = this.tableData.headers;
+    let total = this.tableData.files.length;
+    this.totalPage = Math.ceil(total / this.pageSize);
+    this.files = this.tableData.files.slice(0, this.pageSize);
+    this.iscrollTable = new iScoll(".table-body", {
+      preventDefault: true, // 阻止浏览器滑动默认行为
       probeType: 3, //需要使用 iscroll-probe.js 才能生效 probeType ： 1 滚动不繁忙的时候触发 probeType ： 2 滚动时每隔一定时间触发 probeType ： 3   每滚动一像素触发一次
-      mouseWheel: true, //是否监听鼠标滚轮事件。
-      scrollX: true,  // 启动x轴滑动
-      scrollY: true,  // 启动y轴滑动
+      mouseWheel: false, //是否监听鼠标滚轮事件。
+      scrollX: true, // 启动x轴滑动
+      scrollY: true, // 启动y轴滑动
       freeScroll: false,
-      scrollbars: true,
-    })
-    this.iscrollTable.on('scroll',this.scrollTable)
-    this.iscrollTable.on('beforeScrollStart', this.scrollStart);
-    this.iscrollTable.on('scrollEnd', this.scrollEnd);
-    document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
+      scrollbars: true
+    });
+    this.iscrollTable.on("scroll", this.scrollTable);
+    this.iscrollTable.on("beforeScrollStart", this.scrollStart);
+    // this.iscrollTable.on('scrollEnd', this.scrollEnd);
+    document.addEventListener(
+      "touchmove",
+      function(e) {
+        e.preventDefault();
+      },
+      false
+    );
   },
   methods: {
-    scrollTable () {
-      let iscrollTable = this.iscrollTable
+    scrollTable() {
+      let iscrollTable = this.iscrollTable;
       if (iscrollTable.x > 0) {
         iscrollTable.scrollTo(0, iscrollTable.y);
         return;
@@ -74,16 +80,18 @@ export default {
         iscrollTable.scrollTo(iscrollTable.x, 0);
         return;
       }
-      if (iscrollTable.y === iscrollTable.maxScrollY) {
-        iscrollTable.scrollTo(iscrollTable.x, iscrollTable.maxScrollY);
+      if (iscrollTable.y - iscrollTable.maxScrollY < 20 && this.isUpload) {
+        this.pageNum++;
+        if (this.pageNum < this.totalPage || this.pageNum === this.totalPage) {
+          this.files = this.tableData.files.slice(0, this.pageSize * this.pageNum);
+          setTimeout(() => iscrollTable.refresh(), 0);
+        }
       }
-      const _this = this
-			let timer = null
-			clearInterval(timer)
-			timer = setTimeout(() => {
-				_this.$refs.tFixedLeft.style.transform = 'translateY(' + iscrollTable.y + 'px)'			
-				_this.$refs.tFixedHead.style.transform = 'translate(' + iscrollTable.x + 'px, 0px)'			
-      }, 10)
+      const _this = this;
+      _this.$refs.tFixedLeft.style.transform =
+        "translateY(" + iscrollTable.y + "px)";
+      _this.$refs.tFixedHead.style.transform =
+        "translate(" + iscrollTable.x + "px, 0px)";
     },
     scrollStart() {
       this.startx = this.iscrollTable.x;
@@ -91,35 +99,39 @@ export default {
       this.iscrollTable.refresh();
     },
     scrollEnd() {
-      let iscrollTable = this.iscrollTable
-      if(Math.abs(iscrollTable.maxScrollY) - Math.abs(iscrollTable.y) < 20){
+      let iscrollTable = this.iscrollTable;
+      if (Math.abs(iscrollTable.maxScrollY) - Math.abs(iscrollTable.y) < 20) {
         this.pageNum++;
         if (this.pageNum < this.totalPage || this.pageNum === this.totalPage) {
-          this.files = this.tableData.files.slice(0, this.pageSize*this.pageNum);
+          this.files = this.tableData.files.slice(
+            0,
+            this.pageSize * this.pageNum
+          );
+          iscrollTable.maxScrollY = iscrollTable.maxScrollY - 667;
         }
       }
-    }
+    },
   }
-}
+};
 </script>
 <style lang="less" scoped>
 .document {
   width: 100%;
   position: relative;
   overflow: hidden;
-	.table-head{
-		position: absolute;
-		overflow: hidden;
-		z-index: 99;
-	}
-	.scroll-table{
-		overflow: auto;
+  .table-head {
+    position: absolute;
+    overflow: hidden;
+    z-index: 99;
+  }
+  .scroll-table {
+    overflow: auto;
     -webkit-overflow-scrolling: touch;
-    .table-body{
+    .table-body {
       overflow: hidden;
       position: relative;
     }
-	}
+  }
   .top-left {
     position: absolute;
     top: 0px;
@@ -130,10 +142,10 @@ export default {
     background-color: #ddd;
     border: 1px solid #eee;
   }
-  table{
-    tr.header{
+  table {
+    tr.header {
     }
-    th{
+    th {
       min-width: 100px;
       height: 40px;
       background-color: #ddd;
@@ -141,35 +153,35 @@ export default {
       text-align: center;
       color: #888;
     }
-    th:first-child{
+    th:first-child {
       min-width: 60px;
     }
-    tr td{
+    tr td {
       min-width: 100px;
-			border: 1px solid #eee;
-			height: 50px;
+      border: 1px solid #eee;
+      height: 50px;
     }
   }
-  .left-fixed{
-		position: absolute;
-		top: 0;
-		left: 0;
-		overflow: hidden;
-		z-index: 99;
-		table#left-table {
-			tr td:first-child{
-				min-width: 60px;
-				background-color: #ddd;
-				border: 1px solid #eee;
-				color: #888;
-				text-align: center;
-			}
+  .left-fixed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    z-index: 99;
+    table#left-table {
+      tr td:first-child {
+        min-width: 60px;
+        background-color: #ddd;
+        border: 1px solid #eee;
+        color: #888;
+        text-align: center;
+      }
     }
-	}
-	.table-header{
+  }
+  .table-header {
     position: absolute;
     overflow: hidden;
-	}
+  }
 }
 </style>
 
