@@ -86,6 +86,7 @@ export default {
           this.files = this.tableData.files.slice(0, this.pageSize * this.pageNum);
           setTimeout(() => iscrollTable.refresh(), 0);
           iscrollTable.trigger('scroll');
+          iscrollTable.scrollTo(iscrollTable.x, iscrollTable.y - 200, 200, iscrollTable.utils.ease.bounce)
         }
       }
       const _this = this;
