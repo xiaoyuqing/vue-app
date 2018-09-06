@@ -51,12 +51,20 @@ export default {
     this.iscrollTable = new BScroll(".table-body", {
       preventDefault: true, // 阻止浏览器滑动默认行为
       probeType: 3, //需要使用 iscroll-probe.js 才能生效 probeType ： 1 滚动不繁忙的时候触发 probeType ： 2 滚动时每隔一定时间触发 probeType ： 3   每滚动一像素触发一次
-      mouseWheel: false, //是否监听鼠标滚轮事件。
+      mouseWheel: true, //是否监听鼠标滚轮事件。
       scrollX: true, // 启动x轴滑动
       scrollY: true, // 启动y轴滑动
       scrollbar: true,
       momentum: true,
     });
+    this.leftTable = new BScroll(".left-fixed", {
+      preventDefault: true,
+      scrollY: true
+    });
+    this.topTable = new BScroll(".table-head", {
+      preventDefault: true,
+      scrollX: true
+    })
     this.iscrollTable.on("scroll", this.scrollTable);
     this.iscrollTable.on("beforeScrollStart", this.scrollStart);
   },
@@ -75,6 +83,8 @@ export default {
        if ((iscrollTable.y - iscrollTable.maxScrollY) > 600) {
         this.isUpload = true;
       }
+      this.leftTable.scrollTo(0, iscrollTable.y, 300,);
+      this.topTable.scrollTo(iscrollTable.x, 0, 300);
       if (iscrollTable.y - iscrollTable.maxScrollY < 1200 && this.isUpload) {
         this.pageNum++;
         if (this.pageNum < this.totalPage || this.pageNum === this.totalPage) {
@@ -83,16 +93,67 @@ export default {
           setTimeout(() => iscrollTable.refresh(), 0);
         }
       }
-      const _this = this;
-      _this.$refs.tFixedLeft.style.transform = "translateY(" + iscrollTable.y + "px)";
-      _this.$refs.tFixedLeft.style.transition = "300ms cubic-bezier(0.23, 1, 0.32, 1)";
-      _this.$refs.tFixedHead.style.transform = "translate(" + iscrollTable.x + "px, 0px)";
-      _this.$refs.tFixedHead.style.transition = "300ms cubic-bezier(0.23, 1, 0.32, 1)";
+      // const _this = this;
+      // _this.$refs.tFixedLeft.style.transform = "translateY(" + iscrollTable.y + "px)";
+      // _this.$refs.tFixedLeft.style.transition = "300ms cubic-bezier(0.23, 1, 0.32, 1)";
+      // _this.$refs.tFixedHead.style.transform = "translate(" + iscrollTable.x + "px, 0px)";
+      // _this.$refs.tFixedHead.style.transition = "300ms cubic-bezier(0.23, 1, 0.32, 1)";
     },
     scrollStart() {
       this.startx = this.iscrollTable.x;
       this.starty = this.iscrollTable.y;
       this.iscrollTable.refresh();
+    },
+    createInfinityScroll() {
+      this.scroll = new BScroll('table-body', {
+        observeDOM: false,
+        infinity: {
+          render: (item, div) => {
+            div = div || this.$refs.message.cloneNode(true)
+            div.dataset.id = item.id
+            div.querySelector('.avatar').src = `static/image/avatar${item.avatar}.jpg`
+            div.querySelector('.bubble p').textContent = item.message
+            div.querySelector('.bubble .posted-date').textContent = item.time.toString()
+            let img = div.querySelector('.bubble img')
+            if (item.image !== '') {
+              img.style.display = ''
+              img.src = item.image.src
+              img.width = item.image.width
+              img.height = item.image.height
+            } else {
+              img.src = ''
+              img.style.display = 'none'
+            }
+            if (item.self) {
+              div.classList.add('from-me')
+            } else {
+              div.classList.remove('from-me')
+            }
+            return div
+          },
+          createTombstone: () => {
+            return this.$refs.tombstone.cloneNode(true)
+          },
+          fetch: (count) => {
+            // Fetch at least 30 or count more objects for display.
+            count = Math.max(30, count)
+            return new Promise((resolve, reject) => {
+              // Assume 50 ms per item.
+              setTimeout(() => {
+                if (this.pageNum++ > 20) {
+                  resolve(false)
+                } else {
+                  let items = []
+                  for (let i = 0; i < Math.abs(count); i++) {
+                    items[i] = getItem(this.nextItem++)
+                  }
+                  resolve(Promise.all(items))
+                }
+              }, 1000)
+            })
+          }
+        }
+      })
     },
   }
 };
