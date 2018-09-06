@@ -72,18 +72,22 @@ export default {
         iscrollTable.scrollTo(iscrollTable.x, 0);
         return;
       }
-      if (iscrollTable.y - iscrollTable.maxScrollY < 20 && this.isUpload) {
+       if ((iscrollTable.y - iscrollTable.maxScrollY) > 600) {
+        this.isUpload = true;
+      }
+      if (iscrollTable.y - iscrollTable.maxScrollY < 1200 && this.isUpload) {
         this.pageNum++;
         if (this.pageNum < this.totalPage || this.pageNum === this.totalPage) {
           this.files = this.tableData.files.slice(0, this.pageSize * this.pageNum);
+          this.isUpload = false;
           setTimeout(() => iscrollTable.refresh(), 0);
         }
       }
       const _this = this;
       _this.$refs.tFixedLeft.style.transform = "translateY(" + iscrollTable.y + "px)";
-      // _this.$refs.tFixedLeft.style.transition = "300ms cubic-bezier(0.23, 1, 0.32, 1)";
+      _this.$refs.tFixedLeft.style.transition = "300ms cubic-bezier(0.23, 1, 0.32, 1)";
       _this.$refs.tFixedHead.style.transform = "translate(" + iscrollTable.x + "px, 0px)";
-      // _this.$refs.tFixedHead.style.transition = "300ms cubic-bezier(0.23, 1, 0.32, 1)";
+      _this.$refs.tFixedHead.style.transition = "300ms cubic-bezier(0.23, 1, 0.32, 1)";
     },
     scrollStart() {
       this.startx = this.iscrollTable.x;

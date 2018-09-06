@@ -14,10 +14,11 @@
 		<div class="scroll-table" ref="cScroll" :style="{height: scrollHeight + 'px'}">			
 			<div class="table-body" style="margin: 43px 0 0 63px;" :style="{height: scrollHeight -43 + 'px'}">
 				<table id="roll-table" ref="scrollBody">
-					<tr v-for="(tr, index) in files" :key="index">
+					<tr v-lazy="tr" v-for="(tr, index) in files" :key="index">
 						<td v-for="(item,index) in tr" :key="index">{{item.name}}</td>
 					</tr>
 				</table>
+			<div v-if="this.isUpload">正在加载中...</div>
 			</div>
 		</div>		
 	</div>
@@ -52,7 +53,7 @@ export default {
     this.iscrollTable = new iScoll(".table-body", {
       preventDefault: true, // 阻止浏览器滑动默认行为
       probeType: 3, //需要使用 iscroll-probe.js 才能生效 probeType ： 1 滚动不繁忙的时候触发 probeType ： 2 滚动时每隔一定时间触发 probeType ： 3   每滚动一像素触发一次
-      mouseWheel: false, //是否监听鼠标滚轮事件。
+      mouseWheel: true, //是否监听鼠标滚轮事件。
       scrollX: true, // 启动x轴滑动
       scrollY: true, // 启动y轴滑动
       freeScroll: false,
@@ -80,13 +81,15 @@ export default {
         iscrollTable.scrollTo(iscrollTable.x, 0);
         return;
       }
-      if (iscrollTable.y - iscrollTable.maxScrollY < 20 && this.isUpload) {
+      if ((iscrollTable.y - iscrollTable.maxScrollY) > 600) {
+        this.isUpload = true;
+      }
+      if (iscrollTable.y - iscrollTable.maxScrollY < 1200 && this.isUpload) {
         this.pageNum++;
         if (this.pageNum < this.totalPage || this.pageNum === this.totalPage) {
           this.files = this.tableData.files.slice(0, this.pageSize * this.pageNum);
+          this.isUpload = false;
           setTimeout(() => iscrollTable.refresh(), 0);
-          iscrollTable.trigger('scroll');
-          iscrollTable.scrollTo(iscrollTable.x, iscrollTable.y - 200, 200, iscrollTable.utils.ease.bounce)
         }
       }
       const _this = this;
