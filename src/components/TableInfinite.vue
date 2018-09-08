@@ -198,13 +198,16 @@ export default {
     },
     dataFiller(el, data) {
       let html = [];
+      let nodeList = el.childNodes;
       for (let i = 0;i < data.length; i++) {
-        html.push('<td data-v-3e38e1fc>' + data[i].name + '</td>');
+        nodeList[i].innerHTML = data[i].name;
       } 
-      el.innerHTML = html.join('');
     },
     dataLeftFilter(el, phase) {
-      el.innerHTML = '<td data-v-3e38e1fc>' + (phase + 1) + '</td>';
+      let nodeList = el.childNodes;
+      for (let i = 0;i < nodeList.length; i++) {
+        nodeList[i].innerHTML = phase + 1;
+      }
     },
     dataset(start, count) {
       let data = this.tableData.files.slice(start, count);
