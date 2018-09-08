@@ -22,6 +22,6 @@ export default new Router({
       path: '/tableinfinite',
       name: 'tableinfinite',
       component: TableInfinite
-    },
+    }
   ]
 })
