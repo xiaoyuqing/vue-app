@@ -66,9 +66,20 @@ export default {
       scrollbars: true
     });
     this.iscrollTable.maxScrollY = -2147483066;
-    setTimeout(this.initInfinite, 0);
     this.iscrollTable.on("scroll", this.scrollTable);
     this.iscrollTable.on("beforeScrollStart", this.scrollStart);
+    setTimeout(() => {this.initInfinite(this.iscrollTable, {
+      infiniteElements: document.querySelectorAll('.row'),
+      dataset: this.dataset,
+      dataFilter: this.dataFiller,
+      infiniteLimit: 10000,
+    })}, 0);
+    setTimeout(() => {this.initInfinite(this.iscrollTable, {
+      infiniteElements: document.querySelectorAll('.left-row'),
+      dataset: this.dataset,
+      dataFilter: this.dataFilter,
+      infiniteLimit: 10000,
+    })}, 0);
     document.addEventListener("touchmove",
       function(e) {
         e.preventDefault();
@@ -103,10 +114,9 @@ export default {
       this.starty = this.iscrollTable.y;
       this.iscrollTable.refresh();
     },
-    initInfinite() {
-      let iscrollTable = this.iscrollTable;
-      this.infiniteElements = document.querySelectorAll('.row');
-      this.leftElements = document.querySelectorAll('.left-row');
+    initInfinite(iscrollTable, options) {
+      var el = options.infiniteElements;
+      this.infiniteElements = typeof el == 'string' ? document.querySelectorAll(el) : el;
       this.infiniteLength = this.infiniteElements.length;
       this.infiniteMaster = this.infiniteElements[0];
       this.infiniteElementHeight = this.getRect(this.infiniteMaster).height;
@@ -118,15 +128,14 @@ export default {
       //this.infiniteCache = {};
       // this.options.dataset.call(this, 0, this.options.cacheSize);
      let that = this;
-      iscrollTable.on('refresh', function () {
-        that.reorderInfinite();
-      });
+      // iscrollTable.on('refresh', function () {
+      //   that.reorderInfinite(iscrollTable, options);
+      // });
       var elementsPerPage = Math.ceil(iscrollTable.wrapperHeight / this.infiniteElementHeight);
       this.infiniteUpperBufferSize = Math.floor((that.infiniteLength - elementsPerPage) / 2);
-      this.reorderInfinite()
+      this.reorderInfinite(iscrollTable, options)
     },
-    reorderInfinite() {
-      let iscrollTable = this.iscrollTable;
+    reorderInfinite(iscrollTable, options) {
       var center = -iscrollTable.y + iscrollTable.wrapperHeight / 2;
 
       var minorPhase = Math.max(Math.floor(-iscrollTable.y / this.infiniteElementHeight) - this.infiniteUpperBufferSize, 0),
@@ -147,31 +156,28 @@ export default {
         }
         if ( this.infiniteElements[i]._top !== top ) {
           this.infiniteElements[i]._phase = top / this.infiniteElementHeight;
-          this.leftElements[i]._phase = top / this.infiniteElementHeight;
-          if ( this.infiniteElements[i]._phase < this.options.infiniteLimit ) {
+          if ( this.infiniteElements[i]._phase < options.infiniteLimit ) {
             this.infiniteElements[i]._top = top;
             this.infiniteElements[i].style.transform = 'translate(0, ' + top + 'px)';
-            this.leftElements[i].style.transform = 'translate(0, ' + top + 'px)';
             update.push(this.infiniteElements[i]);
-            updateLeft.push(this.leftElements[i]);
           }
         }
         i++;
       }
       if ( this.cachePhase != cachePhase && (cachePhase === 0 || minorPhase - this.infiniteCacheBuffer > 0) ) {
-        this.dataset(Math.max(cachePhase * this.infiniteCacheBuffer - this.infiniteCacheBuffer, 0), this.options.cacheSize);
+        options.dataset(Math.max(cachePhase * this.infiniteCacheBuffer - this.infiniteCacheBuffer, 0), options.cacheSize);
       }
       this.cachePhase = cachePhase;
-      this.updateContent(update);
-      this.updateLeftContent(updateLeft);
+      this.updateContent(update, options);
     },
-    updateContent: function (els) {
+    updateContent: function (els, options) {
+      console.log(options.dataFiller)
       if ( this.infiniteCache === undefined ) {
         return;
       }
 
       for ( var i = 0, l = els.length; i < l; i++ ) {
-        this.dataFiller(els[i], this.infiniteCache[els[i]._phase]);
+        options.dataFiller(els[i], this.infiniteCache[els[i]._phase]);
       }
     },
     updateLeftContent(els) {
@@ -196,7 +202,7 @@ export default {
         this.updateContent(this.infiniteElements);
       }
     },
-    dataFiller(el, data) {
+    dataFilter(el, data) {
       let html = [];
       let nodeList = el.childNodes;
       for (let i = 0;i < data.length; i++) {

@@ -1,8 +1,8 @@
 <template>
-  <TableInfinite :tableData="mockData" :pageSize="15"></TableInfinite>
+  <TableInfiniteOptimize :tableData="mockData" :pageSize="15"></TableInfiniteOptimize>
 </template>
 <script>
-import TableInfinite from '@/components/TableInfinite'
+import TableInfiniteOptimize from '@/components/TableInfiniteOptimize'
 import mockData from '@/mock/mock.js'
 export default {
   data() {
@@ -11,7 +11,7 @@ export default {
     }
   },
   components:{
-    TableInfinite
+    TableInfiniteOptimize
   }
 }
 </script>
