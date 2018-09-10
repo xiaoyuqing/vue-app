@@ -20,21 +20,15 @@
 						<td v-for="(item,index) in tr" :key="index"></td>
 					</tr>
 				</table>
-			<!-- <div v-if="this.isUpload">正在加载中...</div> -->
 			</div>
 		</div>		
 	</div>
 </template>
 <script>
 const iScoll = require("iscroll/build/iscroll-probe");
-const infinite = require("iscroll/build/iscroll-infinite");
 export default {
   props: {
     tableData: Object,
-    pageSize: {
-      type: Number,
-      default: 11
-    }
   },
   data() {
     return {
@@ -43,8 +37,8 @@ export default {
       showLeft: false,
       showTop: false,
       scrollHeight: window.innerHeight,
+      scrollTableHeight: 0,
       pageNum: 1,
-      isUpload: true,
       options: {
         infiniteLimit: 10000
       },
@@ -54,8 +48,8 @@ export default {
   mounted() {
     this.headers = this.tableData.headers;
     let total = this.tableData.files.length;
-    this.totalPage = Math.ceil(total / this.pageSize);
     this.files = this.tableData.files.slice(0, 15);
+    // this.$refs.scrollBody.style.minHeight = total * 53 + 'px';
     this.iscrollTable = new iScoll(".table-body", {
       preventDefault: true, // 阻止浏览器滑动默认行为
       probeType: 3, //需要使用 iscroll-probe.js 才能生效 probeType ： 1 滚动不繁忙的时候触发 probeType ： 2 滚动时每隔一定时间触发 probeType ： 3   每滚动一像素触发一次
@@ -65,10 +59,10 @@ export default {
       freeScroll: false,
       scrollbars: true
     });
-    this.iscrollTable.maxScrollY = -2147483066;
+    this.iscrollTable.maxScrollY = -total * 53 + window.innerHeight -43;
+    
     setTimeout(this.initInfinite, 0);
     this.iscrollTable.on("scroll", this.scrollTable);
-    this.iscrollTable.on("beforeScrollStart", this.scrollStart);
     document.addEventListener("touchmove",
       function(e) {
         e.preventDefault();
@@ -79,7 +73,7 @@ export default {
   methods: {
     scrollTable() { 
       let iscrollTable = this.iscrollTable;
-      iscrollTable.maxScrollY = -2147483066;
+      iscrollTable.maxScrollY = -this.tableData.files.length * 53 + window.innerHeight-43;
       if (iscrollTable.x > 0) {
         iscrollTable.scrollTo(0, iscrollTable.y);
         return;
@@ -88,24 +82,16 @@ export default {
         iscrollTable.scrollTo(iscrollTable.x, 0);
         return;
       }
-      if ((iscrollTable.y - iscrollTable.maxScrollY) > 600) {
-        this.isUpload = true;
+      if (iscrollTable.y < iscrollTable.maxScrollY) {
+        iscrollTable.scrollTo(iscrollTable.x, iscrollTable.maxScrollY);
       }
-      const _this = this;
-      _this.$refs.tFixedLeft.style.transform =
-        "translateY(" + iscrollTable.y + "px)";
-      _this.$refs.tFixedHead.style.transform =
-        "translate(" + iscrollTable.x + "px, 0px)";
-        this.reorderInfinite();
-    },
-    scrollStart() {
-      this.startx = this.iscrollTable.x;
-      this.starty = this.iscrollTable.y;
-      this.iscrollTable.refresh();
+      this.$refs.tFixedLeft.style.transform = 'translateY(' + iscrollTable.y + 'px)';
+      this.$refs.tFixedHead.style.transform = 'translate(' + iscrollTable.x + 'px, 0px)';
+      this.reorderInfinite();
     },
     initInfinite() {
       let iscrollTable = this.iscrollTable;
-      this.infiniteElements = document.querySelectorAll('.row');
+      this.infiniteElements = document.querySelectorAll('.row'); // 无限滚动元素
       this.leftElements = document.querySelectorAll('.left-row');
       this.infiniteLength = this.infiniteElements.length;
       this.infiniteMaster = this.infiniteElements[0];
@@ -116,31 +102,30 @@ export default {
       this.infiniteCacheBuffer = Math.round(this.options.cacheSize / 40);
 
       //this.infiniteCache = {};
-      // this.options.dataset.call(this, 0, this.options.cacheSize);
-     let that = this;
+      let that = this;
       iscrollTable.on('refresh', function () {
         that.reorderInfinite();
       });
-      var elementsPerPage = Math.ceil(iscrollTable.wrapperHeight / this.infiniteElementHeight);
+      let elementsPerPage = Math.ceil(iscrollTable.wrapperHeight / this.infiniteElementHeight);
       this.infiniteUpperBufferSize = Math.floor((that.infiniteLength - elementsPerPage) / 2);
-      this.reorderInfinite()
+      this.reorderInfinite();
     },
     reorderInfinite() {
       let iscrollTable = this.iscrollTable;
-      var center = -iscrollTable.y + iscrollTable.wrapperHeight / 2;
+      let center = -iscrollTable.y + iscrollTable.wrapperHeight / 2;
 
-      var minorPhase = Math.max(Math.floor(-iscrollTable.y / this.infiniteElementHeight) - this.infiniteUpperBufferSize, 0),
-        majorPhase = Math.floor(minorPhase / this.infiniteLength),
+      let minorPhase = Math.max(Math.floor(-iscrollTable.y / this.infiniteElementHeight) - this.infiniteUpperBufferSize, 0),// 屏幕上方的条数
+        majorPhase = Math.floor(minorPhase / this.infiniteLength),// 需要循环的DOM元素的个数的倍数
         phase = minorPhase - majorPhase * this.infiniteLength;
 
-      var top = 0;
-      var i = 0;
-      var update = [];
-      var updateLeft = [];
-      //var cachePhase = Math.floor((minorPhase + this.infiniteLength / 2) / this.infiniteCacheBuffer);
-      var cachePhase = Math.floor(minorPhase / this.infiniteCacheBuffer);
+      let top = 0;
+      let i = 0;
+      let update = [];
+      let updateLeft = [];
+      //let cachePhase = Math.floor((minorPhase + this.infiniteLength / 2) / this.infiniteCacheBuffer);
+      let cachePhase = Math.floor(minorPhase / this.infiniteCacheBuffer);
 
-      while ( i < this.infiniteLength ) {
+      while ( i < this.infiniteLength ) { // 计算需要的循环的DOM元素的translate值
         top = i * this.infiniteElementHeight + majorPhase * this.infiniteHeight;
         if ( phase > i ) {
           top += this.infiniteElementHeight * this.infiniteLength;
@@ -158,45 +143,40 @@ export default {
         }
         i++;
       }
-      if ( this.cachePhase != cachePhase && (cachePhase === 0 || minorPhase - this.infiniteCacheBuffer > 0) ) {
+      if ( this.cachePhase != cachePhase && (cachePhase === 0 || minorPhase - this.infiniteCacheBuffer > 0) ) { // 更新缓存
         this.dataset(Math.max(cachePhase * this.infiniteCacheBuffer - this.infiniteCacheBuffer, 0), this.options.cacheSize);
       }
       this.cachePhase = cachePhase;
       this.updateContent(update);
       this.updateLeftContent(updateLeft);
     },
-    updateContent: function (els) {
+    updateContent(els) {
       if ( this.infiniteCache === undefined ) {
         return;
       }
-
-      for ( var i = 0, l = els.length; i < l; i++ ) {
-        this.dataFiller(els[i], this.infiniteCache[els[i]._phase]);
+      for ( let i = 0, l = els.length; i < l; i++ ) {
+        this.dataFilter(els[i], this.infiniteCache[els[i]._phase]);
       }
     },
     updateLeftContent(els) {
       if ( this.infiniteCache === undefined ) {
         return;
       }
-
-      for ( var i = 0, l = els.length; i < l; i++ ) {
+      for ( let i = 0, l = els.length; i < l; i++ ) {
         this.dataLeftFilter(els[i], els[i]._phase);
       }
     },
-    updateCache: function (start, data) {
-      var firstRun = this.infiniteCache === undefined;
-
+    updateCache(start, data) {
+      let firstRun = this.infiniteCache === undefined;
       this.infiniteCache = {};
-
-      for ( var i = 0, l = data.length; i < l; i++ ) {
+      for ( let i = 0, l = data.length; i < l; i++ ) {
         this.infiniteCache[start++] = data[i];
       }
-
       if ( firstRun ) {
         this.updateContent(this.infiniteElements);
       }
     },
-    dataFiller(el, data) {
+    dataFilter(el, data) {
       let html = [];
       let nodeList = el.childNodes;
       for (let i = 0;i < data.length; i++) {
@@ -215,10 +195,10 @@ export default {
     },
     getRect(el) {
       return {
-        top : el.offsetTop,
-				left : el.offsetLeft,
-				width : el.offsetWidth,
-				height : el.offsetHeight
+        top: el.offsetTop,
+				left: el.offsetLeft,
+				width: el.offsetWidth,
+				height: el.offsetHeight
       }
     }
   }
@@ -241,7 +221,6 @@ export default {
       overflow: hidden;
       position: relative;    
       #roll-table{
-        min-height: 500000px;
         min-width: 2500px;
       }
       #roll-table tr{
@@ -316,4 +295,3 @@ export default {
   }
 }
 </style>
-

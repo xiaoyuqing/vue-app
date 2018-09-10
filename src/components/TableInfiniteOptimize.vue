@@ -77,7 +77,7 @@ export default {
     setTimeout(() => {this.initInfinite(this.iscrollTable, {
       infiniteElements: document.querySelectorAll('.left-row'),
       dataset: this.dataset,
-      dataFilter: this.dataFilter,
+      dataFilter: this.dataLeftFilter,
       infiniteLimit: 10000,
     })}, 0);
     document.addEventListener("touchmove",
@@ -171,20 +171,18 @@ export default {
       this.updateContent(update, options);
     },
     updateContent: function (els, options) {
-      console.log(options.dataFiller)
       if ( this.infiniteCache === undefined ) {
         return;
       }
 
       for ( var i = 0, l = els.length; i < l; i++ ) {
-        options.dataFiller(els[i], this.infiniteCache[els[i]._phase]);
+        options.dataFilter(els[i], this.infiniteCache[els[i]._phase]);
       }
     },
     updateLeftContent(els) {
       if ( this.infiniteCache === undefined ) {
         return;
       }
-
       for ( var i = 0, l = els.length; i < l; i++ ) {
         this.dataLeftFilter(els[i], els[i]._phase);
       }
