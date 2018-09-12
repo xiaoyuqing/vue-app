@@ -49,7 +49,7 @@ export default {
     this.headers = this.tableData.headers;
     let total = this.tableData.files.length;
     this.files = this.tableData.files.slice(0, 15);
-    // this.$refs.scrollBody.style.minHeight = total * 53 + 'px';
+    this.$refs.scrollBody.style.minHeight = total * 53 + 'px';
     this.iscrollTable = new iScoll(".table-body", {
       preventDefault: true, // 阻止浏览器滑动默认行为
       probeType: 3, //需要使用 iscroll-probe.js 才能生效 probeType ： 1 滚动不繁忙的时候触发 probeType ： 2 滚动时每隔一定时间触发 probeType ： 3   每滚动一像素触发一次
